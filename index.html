@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Interval Timer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --blue: #5a8aff;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --amber: #eab308;
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --border: #2a2a3a;
+    --muted: #555;
+    --text: #e0e0e0;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ========== SCREENS ========== */
+  .screen { display: none; flex-direction: column; height: 100%; }
+  .screen.active { display: flex; }
+
+  /* ========== SETUP ========== */
+  .setup-screen {
+    padding: 2rem 1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    overflow-y: auto;
+  }
+
+  h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .input-area { width: 100%; max-width: 520px; }
+
+  .input-area textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 1.05rem;
+    padding: 1rem 1.2rem;
+    resize: none;
+    min-height: 140px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.7;
+  }
+
+  .input-area textarea:focus { border-color: var(--blue); }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .hint code {
+    background: #1a1a2e;
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+
+  .setup-options {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: #999;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .toggle-row input[type="checkbox"] {
+    appearance: none;
+    width: 36px;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .toggle-row input[type="checkbox"]::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    background: #888;
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+  .toggle-row input[type="checkbox"]:checked {
+    background: var(--blue);
+  }
+
+  .toggle-row input[type="checkbox"]:checked::after {
+    transform: translateX(16px);
+    background: #fff;
+  }
+
+  .btn-start-big {
+    width: 100%;
+    max-width: 520px;
+    padding: 1.1rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: var(--green);
+    color: #000;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-start-big:hover { background: #16a34a; }
+  .btn-start-big:active { transform: scale(0.97); }
+
+  /* ========== TIMER SCREEN ========== */
+  .timer-screen {
+    position: relative;
+    touch-action: manipulation;
+  }
+
+  /* Main area: timer display */
+  .timer-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .timer-top {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem 0;
+    min-height: 0;
+    gap: 0.2rem;
+  }
+
+  /* Label: the user's label text */
+  .timer-label {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Sub info: rep count + phase duration */
+  .timer-sub {
+    font-size: 0.85rem;
+    color: #888;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .timer-sub .rep-badge {
+    background: rgba(90,138,255,0.15);
+    color: var(--blue);
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+  }
+
+  /* Big time */
+  .time {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: min(22vw, 8rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+    margin: 0.2rem 0;
+  }
+
+  .time.warning { color: var(--yellow); }
+  .time.critical { color: var(--red); animation: pulse 0.5s infinite alternate; }
+
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+
+  .timer-elapsed {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #1a1a2a;
+    flex-shrink: 0;
+  }
+
+  .progress-bar .fill {
+    height: 100%;
+    transition: width 0.15s linear;
+    background: var(--blue);
+  }
+
+  /* Sidebar: highlighted source input */
+  .source-panel {
+    flex-shrink: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0;
+    max-height: 28vh;
+    border-top: 1px solid #1a1a2a;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  /* Bottom controls */
+  .bottom-controls {
+    flex-shrink: 0;
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 80%, transparent);
+  }
+
+  .bottom-controls button {
+    flex: 1;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 56px;
+  }
+
+  .bottom-controls button:active { transform: scale(0.96); }
+
+  .btn-pause { background: var(--yellow); color: #000; }
+  .btn-pause:hover { background: #ca8a04; }
+  .btn-pause.resumed { background: var(--green); color: #000; }
+  .btn-reset { background: #222; color: #999; border: 1px solid #333 !important; }
+  .btn-reset:hover { background: #2a2a2a; }
+
+  /* ========== DONE SCREEN ========== */
+  .done-screen {
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    overflow-y: auto;
+  }
+
+  .done-check {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .done-check svg { width: 40px; height: 40px; }
+
+  @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .done-text { font-size: 2rem; font-weight: 700; color: var(--green); letter-spacing: 0.06em; }
+  .done-total { font-size: 1rem; color: var(--muted); }
+
+  .done-source {
+    width: 100%;
+    max-width: 440px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.5rem 0;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .btn-again {
+    width: 100%;
+    max-width: 320px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background: #222;
+    color: #ccc;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-again:active { transform: scale(0.97); }
+
+  /* ========== DESKTOP ========== */
+  @media (min-width: 768px) {
+    .setup-screen { padding: 3rem 2rem; }
+
+    .timer-screen { flex-direction: row; flex-wrap: wrap; }
+
+    .timer-main { flex: 1; height: 100%; min-width: 0; }
+    .timer-top { padding: 2rem; }
+    .timer-label { font-size: 1.8rem; }
+    .time { font-size: 9rem; }
+
+    .source-panel {
+      width: 300px;
+      flex-shrink: 0;
+      max-height: none;
+      height: 100%;
+      border-top: none;
+      border-left: 1px solid #1a1a2a;
+      padding: 1rem 0;
+      font-size: 0.85rem;
+    }
+
+    .bottom-controls {
+      width: 100%;
+      justify-content: center;
+      padding: 1rem 2rem;
+      background: none;
+    }
+
+    .bottom-controls button { flex: none; width: 180px; min-height: 50px; }
+  }
+
+  @media (min-width: 1200px) {
+    .time { font-size: 11rem; }
+    .source-panel { width: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="screen setup-screen active" id="setupScreen">
+  <h1>Interval Timer</h1>
+  <div class="input-area">
+    <textarea id="input" spellcheck="false" autocomplete="off">2.5mx2 - Heavy bag
+1m - Rest
+2.5mx2 - Sparring</textarea>
+    <div class="hint">
+      Format: <code>TIME</code><code>xN</code> <code>- label</code><br>
+      Examples: <code>2.5mx2 - Rounds</code> &nbsp; <code>30s - Rest</code> &nbsp; <code>90sx4 - Drills</code><br>
+      Units: <b>s</b> = seconds, <b>m</b> = minutes. Label is optional.
+    </div>
+  </div>
+  <div class="setup-options">
+    <label class="toggle-row">
+      <input type="checkbox" id="countUpToggle">
+      <span>Count up</span>
+    </label>
+  </div>
+  <button class="btn-start-big" id="startBtn">Start</button>
+</div>
+
+<!-- TIMER -->
+<div class="screen timer-screen" id="timerScreen">
+  <div class="timer-main">
+    <div class="timer-top">
+      <div class="timer-label" id="timerLabel"></div>
+      <div class="timer-sub" id="timerSub"></div>
+      <div class="time" id="timeLeft">00:00</div>
+      <div class="timer-elapsed" id="timerElapsed"></div>
+    </div>
+    <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+  </div>
+  <div class="source-panel" id="sourcePanel"></div>
+  <div class="bottom-controls">
+    <button class="btn-pause" id="pauseBtn">Pause</button>
+    <button class="btn-reset" id="resetBtn">Reset</button>
+  </div>
+</div>
+
+<!-- DONE -->
+<div class="screen done-screen" id="doneScreen">
+  <div class="done-check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <div class="done-text">Done!</div>
+  <div class="done-total" id="doneTotal"></div>
+  <div class="done-source" id="doneSource"></div>
+  <button class="btn-again" id="againBtn">Back to Setup</button>
+</div>
+
+<script>
+  // ---- Elements ----
+  const $ = id => document.getElementById(id);
+  const setupScreen = $('setupScreen');
+  const timerScreen = $('timerScreen');
+  const doneScreen = $('doneScreen');
+  const inputEl = $('input');
+  const countUpToggle = $('countUpToggle');
+  const startBtn = $('startBtn');
+  const pauseBtn = $('pauseBtn');
+  const resetBtn = $('resetBtn');
+  const againBtn = $('againBtn');
+  const timerLabel = $('timerLabel');
+  const timerSub = $('timerSub');
+  const timeLeftEl = $('timeLeft');
+  const timerElapsed = $('timerElapsed');
+  const progressFill = $('progressFill');
+  const sourcePanel = $('sourcePanel');
+  const doneTotal = $('doneTotal');
+  const doneSource = $('doneSource');
+
+  let phases = [];
+  let sourceText = '';
+  let currentIndex = -1;
+  let remaining = 0;
+  let phaseDuration = 0;
+  let totalElapsed = 0;
+  let interval = null;
+  let lastTick = 0;
+  let running = false;
+  let paused = false;
+  let countUp = false;
+
+  // ---- Audio ----
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, startTime, type = 'sine') {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.25, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+  }
+
+  function beepSwitch() {
+    const ctx = getAudioCtx();
+    const t = ctx.currentTime;
+    playTone(660, 0.12, t, 'square');
+    playTone(880, 0.18, t + 0.12, 'square');
+  }
+
+  function beepDone() {
+    const ctx = getAudioCtx();
+    const t = ctx.currentTime;
+    playTone(880, 0.15, t, 'square');
+    playTone(1100, 0.15, t + 0.2, 'square');
+    playTone(1320, 0.3, t + 0.4, 'square');
+  }
+
+  function beepCountdown() {
+    const ctx = getAudioCtx();
+    playTone(440, 0.08, ctx.currentTime, 'sine');
+  }
+
+  // ---- Parsing ----
+  const LINE_RE = /^(\d+\.?\d*)\s*(s|m)\s*(?:x\s*(\d+))?\s*(?:-\s*(.*))?$/i;
+
+  function parseTimerInput(text) {
+    const lines = text.split('\n');
+    const result = [];
+    let phaseNumber = 0;
+
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const raw = lines[lineIndex];
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+
+      phaseNumber++;
+      const m = trimmed.match(LINE_RE);
+      if (!m) continue;
+
+      const numVal = parseFloat(m[1]);
+      const unit = m[2].toLowerCase();
+      const totalReps = m[3] ? parseInt(m[3], 10) : 1;
+      const labelText = m[4] ? m[4].trim() : '';
+      const label = labelText || ('Phase ' + phaseNumber);
+      const seconds = unit === 's' ? numVal : numVal * 60;
+      const ms = Math.round(seconds * 1000);
+      const displayTime = m[1] + unit;
+
+      for (let i = 0; i < totalReps; i++) {
+        result.push({
+          duration: ms,
+          label,
+          rep: totalReps > 1 ? ((i + 1) + '/' + totalReps) : null,
+          totalReps,
+          repIndex: i,
+          lineIndex,
+          displayTime,
+          sourceText: raw,
+        });
+      }
+    }
+    return result;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderHighlightedInput(text, activeLineIndex) {
+    const lines = text.split('\n');
+    const parts = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const raw = lines[i];
+      const trimmed = raw.trim();
+
+      let lineStyle = 'padding:3px 10px;white-space:pre;transition:opacity 0.2s;';
+      if (activeLineIndex !== null && activeLineIndex !== undefined) {
+        if (i < activeLineIndex) lineStyle += 'opacity:0.3;';
+        else if (i === activeLineIndex) lineStyle += 'background:rgba(90,138,255,0.12);border-left:3px solid #5a8aff;';
+      }
+
+      if (!trimmed) {
+        parts.push('<div style="' + lineStyle + '">&nbsp;</div>');
+        continue;
+      }
+
+      const m = trimmed.match(LINE_RE);
+      if (!m) {
+        parts.push('<div style="' + lineStyle + '"><span style="color:#666">' + escapeHtml(raw) + '</span></div>');
+        continue;
+      }
+
+      let html = '';
+      html += '<span style="color:#fff;font-weight:bold">' + escapeHtml(m[1]) + '</span>';
+      html += '<span style="color:#5a8aff">' + escapeHtml(m[2]) + '</span>';
+
+      if (m[3]) {
+        const afterUnit = trimmed.slice((m[1] + m[2]).length);
+        const xMatch = afterUnit.match(/^(\s*x\s*)(\d+)/i);
+        if (xMatch) {
+          const xPart = xMatch[1];
+          const countPart = xMatch[2];
+          const xIdx = xPart.search(/x/i);
+          html += escapeHtml(xPart.slice(0, xIdx));
+          html += '<span style="color:#eab308">' + escapeHtml(xPart[xIdx]) + escapeHtml(xPart.slice(xIdx + 1)) + escapeHtml(countPart) + '</span>';
+        }
+      }
+
+      if (m[4] !== undefined) {
+        const baseLen = (m[1] + m[2]).length;
+        let afterBase = trimmed.slice(baseLen);
+        if (m[3]) {
+          const xMatch = afterBase.match(/^(\s*x\s*\d+)/i);
+          if (xMatch) afterBase = afterBase.slice(xMatch[1].length);
+        }
+        const dashMatch = afterBase.match(/^(\s*-\s*)(.*)/);
+        if (dashMatch) {
+          const preDash = dashMatch[1];
+          const dashIdx = preDash.indexOf('-');
+          html += escapeHtml(preDash.slice(0, dashIdx));
+          html += '<span style="color:#444">-</span>';
+          html += escapeHtml(preDash.slice(dashIdx + 1));
+          html += '<span style="color:#aaa;font-style:italic">' + escapeHtml(dashMatch[2]) + '</span>';
+        }
+      }
+
+      parts.push('<div style="' + lineStyle + '">' + html + '</div>');
+    }
+    return parts.join('');
+  }
+
+  function formatTime(ms) {
+    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  function formatTimeFloor(ms) {
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+
+  // ---- Screens ----
+  function showScreen(screen) {
+    [setupScreen, timerScreen, doneScreen].forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
+  }
+
+  // ---- Display ----
+  let lastBeepedSec = -1;
+
+  function updateDisplay() {
+    const phase = phases[currentIndex];
+    if (!phase) return;
+
+    // Label
+    timerLabel.textContent = phase.label;
+
+    // Sub info: rep badge + phase duration
+    let subHtml = '';
+    if (phase.rep) {
+      subHtml += '<span class="rep-badge">Lap ' + escapeHtml(phase.rep) + '</span>';
+    }
+    subHtml += '<span>' + escapeHtml(phase.displayTime) + ' per lap</span>';
+    timerSub.innerHTML = subHtml;
+
+    // Time display
+    const elapsed = phaseDuration - remaining;
+    const displayMs = countUp ? elapsed : remaining;
+    timeLeftEl.textContent = countUp ? formatTimeFloor(displayMs) : formatTime(displayMs);
+
+    timeLeftEl.className = 'time';
+    const secLeft = remaining / 1000;
+    if (secLeft <= 3 && secLeft > 0) {
+      timeLeftEl.classList.add('critical');
+      const secCeil = Math.ceil(secLeft);
+      if (secCeil !== lastBeepedSec && secCeil <= 3) {
+        lastBeepedSec = secCeil;
+        beepCountdown();
+      }
+    } else if (secLeft <= 10) {
+      timeLeftEl.classList.add('warning');
+    }
+
+    // Elapsed total
+    timerElapsed.textContent = 'Total: ' + formatTimeFloor(totalElapsed);
+
+    // Progress
+    const pct = phaseDuration > 0 ? (elapsed / phaseDuration) * 100 : 0;
+    progressFill.style.width = Math.min(100, pct) + '%';
+
+    // Highlighted source
+    sourcePanel.innerHTML = renderHighlightedInput(sourceText, phase.lineIndex);
+    // Auto-scroll active line into view
+    const activeLine = sourcePanel.querySelector('[style*="border-left:3px"]');
+    if (activeLine) activeLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function startPhase(index) {
+    if (index >= phases.length) { finish(); return; }
+    currentIndex = index;
+    const phase = phases[index];
+    remaining = phase.duration;
+    phaseDuration = phase.duration;
+    lastBeepedSec = -1;
+    beepSwitch();
+    updateDisplay();
+  }
+
+  function tick() {
+    const now = performance.now();
+    const dt = now - lastTick;
+    lastTick = now;
+    remaining -= dt;
+    totalElapsed += dt;
+    if (remaining <= 0) {
+      totalElapsed += remaining;
+      startPhase(currentIndex + 1);
+      return;
+    }
+    updateDisplay();
+  }
+
+  // ---- Controls ----
+  function start() {
+    getAudioCtx();
+    sourceText = inputEl.value;
+    countUp = countUpToggle.checked;
+    phases = parseTimerInput(sourceText);
+    if (phases.length === 0) return;
+
+    showScreen(timerScreen);
+    running = true;
+    paused = false;
+    totalElapsed = 0;
+    currentIndex = -1;
+    pauseBtn.textContent = 'Pause';
+    pauseBtn.classList.remove('resumed');
+
+    startPhase(0);
+    lastTick = performance.now();
+    interval = setInterval(tick, 50);
+  }
+
+  function pause() {
+    if (!running) return;
+    if (paused) {
+      lastTick = performance.now();
+      interval = setInterval(tick, 50);
+      pauseBtn.textContent = 'Pause';
+      pauseBtn.classList.remove('resumed');
+      paused = false;
+    } else {
+      clearInterval(interval);
+      pauseBtn.textContent = 'Resume';
+      pauseBtn.classList.add('resumed');
+      paused = true;
+    }
+  }
+
+  function reset() {
+    clearInterval(interval);
+    running = false;
+    paused = false;
+    currentIndex = -1;
+    showScreen(setupScreen);
+  }
+
+  function finish() {
+    clearInterval(interval);
+    running = false;
+    beepDone();
+    doneTotal.textContent = 'Total time: ' + formatTimeFloor(totalElapsed);
+    // All lines done — pass line count so all are dimmed
+    const lineCount = sourceText.split('\n').length;
+    doneSource.innerHTML = renderHighlightedInput(sourceText, lineCount);
+    showScreen(doneScreen);
+  }
+
+  startBtn.addEventListener('click', start);
+  pauseBtn.addEventListener('click', pause);
+  resetBtn.addEventListener('click', reset);
+  againBtn.addEventListener('click', () => showScreen(setupScreen));
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target === inputEl) {
+      if (e.code === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); start(); }
+      return;
+    }
+    if (e.code === 'Space') { e.preventDefault(); running ? pause() : start(); }
+    if (e.code === 'Escape') reset();
+  });
+
+  // Prevent pull-to-refresh on mobile
+  timerScreen.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1) e.preventDefault();
+  }, { passive: false });
+</script>
+
+</body>
+</html>
