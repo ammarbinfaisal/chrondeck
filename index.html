@@ -299,17 +299,50 @@
     background: var(--blue);
   }
 
-  /* Sidebar: highlighted source input */
+  /* Horizontal phase strip */
   .source-panel {
     flex-shrink: 0;
-    overflow-y: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 0.5rem 0;
-    max-height: 28vh;
+    padding: 0.75rem 1rem;
     border-top: 1px solid #1a1a2a;
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .source-panel::-webkit-scrollbar { display: none; }
+
+  .phase-item {
+    flex-shrink: 0;
+    padding: 0.3rem 0.7rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .phase-item.active {
     font-size: 1.05rem;
-    line-height: 1.8;
+    font-weight: 700;
+    color: var(--text);
+    background: rgba(90,138,255,0.12);
+    padding: 0.4rem 0.9rem;
+  }
+
+  .phase-item.past {
+    opacity: 0.35;
+  }
+
+  .phase-sep {
+    color: #333;
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    transition: opacity 0.3s;
   }
 
   /* Bottom controls */
@@ -407,23 +440,14 @@
   @media (min-width: 768px) {
     .setup-screen { padding: 3rem 2rem; }
 
-    .timer-screen { flex-direction: row; flex-wrap: wrap; }
-
-    .timer-main { flex: 1; height: 100%; min-width: 0; }
+    .timer-main { flex: 1; min-height: 0; }
     .timer-top { padding: 2rem; }
     .timer-label { font-size: 1.8rem; }
     .time { font-size: 9rem; }
 
-    .source-panel {
-      width: 300px;
-      flex-shrink: 0;
-      max-height: none;
-      height: 100%;
-      border-top: none;
-      border-left: 1px solid #1a1a2a;
-      padding: 1rem 0;
-      font-size: 1.1rem;
-    }
+    .source-panel { padding: 1rem 1.5rem; }
+    .phase-item { font-size: 0.9rem; }
+    .phase-item.active { font-size: 1.15rem; }
 
     .bottom-controls {
       width: 100%;
@@ -437,7 +461,6 @@
 
   @media (min-width: 1200px) {
     .time { font-size: 11rem; }
-    .source-panel { width: 360px; }
   }
 </style>
 </head>
@@ -689,6 +712,35 @@
     return parts.join('');
   }
 
+  function renderPhaseStrip(text, activeLineIndex) {
+    const lines = text.split('\n');
+    const items = [];
+    for (let i = 0; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      if (!trimmed) continue;
+
+      let cls = 'phase-item';
+      if (activeLineIndex !== null && activeLineIndex !== undefined) {
+        if (i < activeLineIndex) cls += ' past';
+        else if (i === activeLineIndex) cls += ' active';
+      }
+
+      const m = trimmed.match(LINE_RE);
+      let html;
+      if (m) {
+        html = '<span style="color:#fff">' + escapeHtml(m[1]) + '</span>';
+        html += '<span style="color:#5a8aff">' + escapeHtml(m[2]) + '</span>';
+        if (m[3]) html += '<span style="color:#eab308">x' + escapeHtml(m[3]) + '</span>';
+        if (m[4]) html += ' <span style="font-style:italic">' + escapeHtml(m[4].trim()) + '</span>';
+      } else {
+        html = '<span style="color:#666">' + escapeHtml(trimmed) + '</span>';
+      }
+
+      items.push('<span class="' + cls + '">' + html + '</span>');
+    }
+    return items.join('<span class="phase-sep">·</span>');
+  }
+
   function formatTime(ms) {
     const totalSec = Math.max(0, Math.ceil(ms / 1000));
     const min = Math.floor(totalSec / 60);
@@ -754,11 +806,10 @@
     const pct = phaseDuration > 0 ? (elapsed / phaseDuration) * 100 : 0;
     progressFill.style.width = Math.min(100, pct) + '%';
 
-    // Highlighted source
-    sourcePanel.innerHTML = renderHighlightedInput(sourceText, phase.lineIndex);
-    // Auto-scroll active line into view
-    const activeLine = sourcePanel.querySelector('[style*="border-left:3px"]');
-    if (activeLine) activeLine.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Phase strip
+    sourcePanel.innerHTML = renderPhaseStrip(sourceText, phase.lineIndex);
+    const activeItem = sourcePanel.querySelector('.phase-item.active');
+    if (activeItem) activeItem.scrollIntoView({ inline: 'center', behavior: 'smooth' });
   }
 
   function startPhase(index) {
