@@ -461,6 +461,10 @@
       <input type="checkbox" id="countUpToggle">
       <span>Count up</span>
     </label>
+    <label class="toggle-row">
+      <input type="checkbox" id="loopToggle">
+      <span>Loop</span>
+    </label>
     <button class="btn-save" id="saveBtn">Save</button>
   </div>
   <div class="presets-list" id="presetsList"></div>
@@ -530,6 +534,8 @@
   let running = false;
   let paused = false;
   let countUp = false;
+  let loopMode = false;
+  let loopCount = 0;
 
   // ---- Audio ----
   let audioCtx = null;
@@ -740,7 +746,9 @@
     }
 
     // Elapsed total
-    timerElapsed.textContent = 'Total: ' + formatTimeFloor(totalElapsed);
+    let elapsedText = 'Total: ' + formatTimeFloor(totalElapsed);
+    if (loopMode) elapsedText += '  ·  Loop ' + loopCount;
+    timerElapsed.textContent = elapsedText;
 
     // Progress
     const pct = phaseDuration > 0 ? (elapsed / phaseDuration) * 100 : 0;
@@ -783,6 +791,8 @@
     getAudioCtx();
     sourceText = inputEl.value;
     countUp = countUpToggle.checked;
+    loopMode = $('loopToggle').checked;
+    loopCount = 1;
     phases = parseTimerInput(sourceText);
     if (phases.length === 0) return;
 
@@ -824,6 +834,12 @@
   }
 
   function finish() {
+    if (loopMode) {
+      loopCount++;
+      beepSwitch();
+      startPhase(0);
+      return;
+    }
     clearInterval(interval);
     running = false;
     beepDone();
