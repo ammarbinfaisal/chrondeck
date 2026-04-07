@@ -246,9 +246,9 @@
   }
   .timer-title:empty { display: none; }
 
-  /* Label: the user's label text */
+  /* Label: the user's label text — 75% of time counter size */
   .timer-label {
-    font-size: 1.3rem;
+    font-size: min(16.5vw, 6rem);
     font-weight: 700;
     color: var(--text);
     text-align: center;
@@ -457,7 +457,7 @@
 
     .timer-main { flex: 1; min-height: 0; }
     .timer-top { padding: 2rem; }
-    .timer-label { font-size: 1.8rem; }
+    .timer-label { font-size: 6.75rem; }
     .time { font-size: 9rem; }
 
     .source-panel { padding: 1rem 1.5rem; }
@@ -475,6 +475,7 @@
   }
 
   @media (min-width: 1200px) {
+    .timer-label { font-size: 8.25rem; }
     .time { font-size: 11rem; }
   }
 </style>
