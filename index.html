@@ -231,6 +231,21 @@
     gap: 0.2rem;
   }
 
+  /* Title: from top comment */
+  .timer-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .timer-title:empty { display: none; }
+
   /* Label: the user's label text */
   .timer-label {
     font-size: 1.3rem;
@@ -499,6 +514,7 @@
 <div class="screen timer-screen" id="timerScreen">
   <div class="timer-main">
     <div class="timer-top">
+      <div class="timer-title" id="timerTitle"></div>
       <div class="timer-label" id="timerLabel"></div>
       <div class="timer-sub" id="timerSub"></div>
       <div class="time" id="timeLeft">00:00</div>
@@ -538,6 +554,7 @@
   const pauseBtn = $('pauseBtn');
   const resetBtn = $('resetBtn');
   const againBtn = $('againBtn');
+  const timerTitle = $('timerTitle');
   const timerLabel = $('timerLabel');
   const timerSub = $('timerSub');
   const timeLeftEl = $('timeLeft');
@@ -607,6 +624,17 @@
   const LINE_RE = /^(\d+\.?\d*)\s*(s|m)\s*(?:x\s*(\d+))?\s*(?:-\s*(.*))?$/i;
 
   const COMMENT_RE = /^(?:--|;)\s*(.*)/;
+
+  function extractTitle(text) {
+    const lines = text.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const cm = trimmed.match(COMMENT_RE);
+      return cm ? cm[1].trim() : '';
+    }
+    return '';
+  }
 
   function parseTimerInput(text) {
     const lines = text.split('\n');
@@ -857,6 +885,7 @@
     phases = parseTimerInput(sourceText);
     if (phases.length === 0) return;
 
+    timerTitle.textContent = extractTitle(sourceText);
     showScreen(timerScreen);
     running = true;
     paused = false;
@@ -942,10 +971,12 @@
     const dsl = inputEl.value.trim();
     if (!dsl) return;
     const presets = getSavedPresets();
-    let name = '';
-    for (const line of dsl.split('\n')) {
-      const m = line.trim().match(LINE_RE);
-      if (m && m[4]) { name = m[4].trim(); break; }
+    let name = extractTitle(dsl);
+    if (!name) {
+      for (const line of dsl.split('\n')) {
+        const m = line.trim().match(LINE_RE);
+        if (m && m[4]) { name = m[4].trim(); break; }
+      }
     }
     if (!name) name = 'Preset ' + (presets.length + 1);
     presets.push({ name, dsl, id: Date.now() });
