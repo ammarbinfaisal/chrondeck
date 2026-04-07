@@ -476,7 +476,8 @@
     <div class="hint">
       Format: <code>TIME</code><code>xN</code> <code>- label</code><br>
       Examples: <code>2.5mx2 - Rounds</code> &nbsp; <code>30s - Rest</code> &nbsp; <code>90sx4 - Drills</code><br>
-      Units: <b>s</b> = seconds, <b>m</b> = minutes. Label is optional.
+      Units: <b>s</b> = seconds, <b>m</b> = minutes. Label is optional.<br>
+      Comments: <code>-- text</code> or <code>; text</code>
     </div>
   </div>
   <div class="setup-options">
@@ -605,6 +606,8 @@
   // ---- Parsing ----
   const LINE_RE = /^(\d+\.?\d*)\s*(s|m)\s*(?:x\s*(\d+))?\s*(?:-\s*(.*))?$/i;
 
+  const COMMENT_RE = /^(?:--|;)\s*(.*)/;
+
   function parseTimerInput(text) {
     const lines = text.split('\n');
     const result = [];
@@ -614,6 +617,7 @@
       const raw = lines[lineIndex];
       const trimmed = raw.trim();
       if (!trimmed) continue;
+      if (COMMENT_RE.test(trimmed)) continue;
 
       phaseNumber++;
       const m = trimmed.match(LINE_RE);
@@ -664,6 +668,11 @@
 
       if (!trimmed) {
         parts.push('<div style="' + lineStyle + '">&nbsp;</div>');
+        continue;
+      }
+
+      if (COMMENT_RE.test(trimmed)) {
+        parts.push('<div style="' + lineStyle + '"><span style="color:#6a9955;font-style:italic">' + escapeHtml(raw) + '</span></div>');
         continue;
       }
 
@@ -718,6 +727,7 @@
     for (let i = 0; i < lines.length; i++) {
       const trimmed = lines[i].trim();
       if (!trimmed) continue;
+      if (COMMENT_RE.test(trimmed)) continue;
 
       let cls = 'phase-item';
       if (activeLineIndex !== null && activeLineIndex !== undefined) {
