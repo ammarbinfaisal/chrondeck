@@ -8,19 +8,21 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
+    --accent: #5a8aff;
     --blue: #5a8aff;
     --green: #22c55e;
     --yellow: #eab308;
     --red: #ef4444;
     --amber: #eab308;
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --border: #2a2a3a;
-    --muted: #555;
-    --text: #e0e0e0;
+    --bg: #14110d;
+    --surface: #1c1814;
+    --border: #2e2822;
+    --muted: #9a958c;
+    --text: #e8e2d8;
   }
 
   [data-theme="warm"] {
+    --accent: #c47830;
     --blue: #c47830;
     --green: #5a9a3e;
     --yellow: #b8860b;
@@ -29,31 +31,16 @@
     --bg: #faf5ef;
     --surface: #f0e8de;
     --border: #d6c8b4;
-    --muted: #998a76;
+    --muted: #7a6b57;
     --text: #3d3428;
   }
 
-  [data-theme="warm"] h1 { color: var(--muted); }
-  [data-theme="warm"] .hint code { background: #e8dfd3; }
-  [data-theme="warm"] .toggle-row { color: var(--muted); }
-  [data-theme="warm"] .toggle-row input[type="checkbox"] { background: #d6c8b4; }
-  [data-theme="warm"] .toggle-row input[type="checkbox"]::after { background: #fff; }
-  [data-theme="warm"] .toggle-row input[type="checkbox"]:checked::after { background: #fff; }
   [data-theme="warm"] .btn-start-big { color: #fff; }
   [data-theme="warm"] .btn-start-big:hover { background: #4e8a35; }
-  [data-theme="warm"] .btn-save { color: var(--muted); }
-  [data-theme="warm"] .timer-sub { color: var(--muted); }
-  [data-theme="warm"] .timer-sub .rep-badge { background: rgba(196,120,48,0.15); }
-  [data-theme="warm"] .progress-bar { background: var(--border); }
-  [data-theme="warm"] .source-panel { border-top-color: var(--border); }
-  [data-theme="warm"] .phase-item.active { background: rgba(196,120,48,0.12); }
-  [data-theme="warm"] .phase-sep { color: var(--border); }
   [data-theme="warm"] .btn-pause { color: #fff; }
   [data-theme="warm"] .btn-pause:hover { background: #a07209; }
   [data-theme="warm"] .btn-pause.resumed { color: #fff; }
-  [data-theme="warm"] .btn-reset { background: var(--surface); color: var(--muted); border-color: var(--border) !important; }
-  [data-theme="warm"] .btn-reset:hover { background: var(--border); }
-  [data-theme="warm"] .btn-again { background: var(--surface); color: var(--text); }
+  [data-theme="warm"] .btn-next { color: #fff; }
   [data-theme="warm"] .done-check svg { stroke: #fff; }
 
   html, body { height: 100%; overflow: hidden; }
@@ -64,6 +51,21 @@
     color: var(--text);
     display: flex;
     flex-direction: column;
+  }
+
+  button:focus-visible,
+  textarea:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 
   /* ========== SCREENS ========== */
@@ -84,7 +86,7 @@
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #888;
+    color: var(--muted);
   }
 
   .input-area { width: 100%; max-width: 520px; }
@@ -115,7 +117,7 @@
   }
 
   .hint code {
-    background: #1a1a2e;
+    background: var(--surface);
     padding: 0.15em 0.4em;
     border-radius: 4px;
     font-size: 0.85em;
@@ -134,7 +136,7 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.82rem;
-    color: #999;
+    color: var(--muted);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
@@ -144,7 +146,7 @@
     appearance: none;
     width: 36px;
     height: 20px;
-    background: #333;
+    background: var(--border);
     border-radius: 10px;
     position: relative;
     cursor: pointer;
@@ -159,13 +161,13 @@
     left: 2px;
     width: 16px;
     height: 16px;
-    background: #888;
+    background: var(--muted);
     border-radius: 50%;
     transition: transform 0.2s, background 0.2s;
   }
 
   .toggle-row input[type="checkbox"]:checked {
-    background: var(--blue);
+    background: var(--accent);
   }
 
   .toggle-row input[type="checkbox"]:checked::after {
@@ -198,7 +200,7 @@
     margin-left: auto;
     background: none;
     border: 1px solid var(--border);
-    color: #888;
+    color: var(--muted);
     font-family: inherit;
     font-size: 0.8rem;
     padding: 0.3rem 0.8rem;
@@ -311,7 +313,7 @@
   /* Sub info: rep count + phase duration */
   .timer-sub {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--muted);
     display: flex;
     gap: 1rem;
     align-items: center;
@@ -319,12 +321,22 @@
   }
 
   .timer-sub .rep-badge {
-    background: rgba(90,138,255,0.15);
-    color: var(--blue);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+    color: var(--accent);
     padding: 0.15em 0.5em;
     border-radius: 4px;
     font-weight: 600;
     font-size: 0.8rem;
+  }
+
+  .timer-sub .over-badge {
+    background: color-mix(in srgb, var(--red) 18%, transparent);
+    color: var(--red);
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
   }
 
   /* Big time */
@@ -340,9 +352,10 @@
   }
 
   .time.warning { color: var(--yellow); }
-  .time.critical { color: var(--red); animation: pulse 0.5s infinite alternate; }
+  .time.critical { color: var(--red); animation: breath 1.4s ease-in-out infinite alternate; }
+  .time.over { color: var(--red); }
 
-  @keyframes pulse { from { opacity: 1; } to { opacity: 0.4; } }
+  @keyframes breath { from { filter: brightness(1); } to { filter: brightness(0.82); } }
 
   .timer-elapsed {
     font-size: 0.78rem;
@@ -354,15 +367,17 @@
   .progress-bar {
     width: 100%;
     height: 4px;
-    background: #1a1a2a;
+    background: var(--border);
     flex-shrink: 0;
   }
 
   .progress-bar .fill {
     height: 100%;
     transition: width 0.15s linear;
-    background: var(--blue);
+    background: var(--accent);
   }
+
+  .progress-bar .fill.over { background: var(--red); }
 
   /* Horizontal phase strip */
   .source-panel {
@@ -371,7 +386,7 @@
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     padding: 0.75rem 1rem;
-    border-top: 1px solid #1a1a2a;
+    border-top: 1px solid var(--border);
     font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
     display: flex;
     align-items: center;
@@ -395,7 +410,7 @@
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--text);
-    background: rgba(90,138,255,0.12);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
     padding: 0.4rem 0.9rem;
   }
 
@@ -404,7 +419,7 @@
   }
 
   .phase-sep {
-    color: #333;
+    color: var(--border);
     flex-shrink: 0;
     font-size: 0.7rem;
     transition: opacity 0.3s;
@@ -440,8 +455,11 @@
   .btn-pause { background: var(--yellow); color: #000; }
   .btn-pause:hover { background: #ca8a04; }
   .btn-pause.resumed { background: var(--green); color: #000; }
-  .btn-reset { background: #222; color: #999; border: 1px solid #333 !important; }
-  .btn-reset:hover { background: #2a2a2a; }
+  .btn-next { background: var(--green); color: #000; }
+  .btn-next:hover { background: #16a34a; }
+  .btn-next.over { background: var(--red); color: #fff; }
+  .btn-reset { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+  .btn-reset:hover { background: var(--border); }
 
   /* ========== DONE SCREEN ========== */
   .done-screen {
@@ -482,6 +500,43 @@
     overflow: hidden;
   }
 
+  .lap-results {
+    width: 100%;
+    max-width: 440px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.82rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .lap-results:empty { display: none; }
+  .lap-results .lap-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 0.7rem;
+    padding: 0.4rem 0.8rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .lap-results .lap-row:last-child { border-bottom: none; }
+  .lap-results .lap-idx { color: var(--muted); font-size: 0.75rem; min-width: 2.2em; }
+  .lap-results .lap-label { color: var(--text); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lap-results .lap-time { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .lap-results .lap-delta { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 4.5em; text-align: right; }
+  .lap-results .lap-delta.over { color: var(--red); }
+  .lap-results .lap-delta.under { color: var(--green); }
+  .lap-results .lap-delta.on { color: var(--muted); }
+  .lap-results .lap-summary {
+    padding: 0.5rem 0.8rem;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    color: var(--muted);
+    font-size: 0.78rem;
+    display: flex;
+    justify-content: space-between;
+  }
+  .lap-results .lap-summary b { color: var(--text); }
+
   .btn-again {
     width: 100%;
     max-width: 320px;
@@ -491,11 +546,11 @@
     font-family: inherit;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    border: none;
+    border: 1px solid var(--border);
     border-radius: 14px;
     cursor: pointer;
-    background: #222;
-    color: #ccc;
+    background: var(--surface);
+    color: var(--text);
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -555,7 +610,11 @@
       <input type="checkbox" id="loopToggle">
       <span>Loop</span>
     </label>
-    <button class="btn-theme" id="themeBtn" title="Toggle theme">&#9788;</button>
+    <label class="toggle-row" title="Don't auto-advance; track over/under per lap">
+      <input type="checkbox" id="manualToggle">
+      <span>Manual</span>
+    </label>
+    <button class="btn-theme" id="themeBtn" aria-label="Toggle theme" title="Toggle theme">&#9788;</button>
     <button class="btn-save" id="saveBtn">Save</button>
   </div>
   <div class="presets-list" id="presetsList"></div>
@@ -576,6 +635,7 @@
   </div>
   <div class="source-panel" id="sourcePanel"></div>
   <div class="bottom-controls">
+    <button class="btn-next" id="nextBtn" style="display:none">Next</button>
     <button class="btn-pause" id="pauseBtn">Pause</button>
     <button class="btn-reset" id="resetBtn">Reset</button>
   </div>
@@ -590,6 +650,7 @@
   </div>
   <div class="done-text">Done!</div>
   <div class="done-total" id="doneTotal"></div>
+  <div class="lap-results" id="lapResults"></div>
   <div class="done-source" id="doneSource"></div>
   <button class="btn-again" id="againBtn">Back to Setup</button>
 </div>
@@ -602,8 +663,10 @@
   const doneScreen = $('doneScreen');
   const inputEl = $('input');
   const countUpToggle = $('countUpToggle');
+  const manualToggle = $('manualToggle');
   const startBtn = $('startBtn');
   const pauseBtn = $('pauseBtn');
+  const nextBtn = $('nextBtn');
   const resetBtn = $('resetBtn');
   const againBtn = $('againBtn');
   const timerTitle = $('timerTitle');
@@ -615,6 +678,7 @@
   const sourcePanel = $('sourcePanel');
   const doneTotal = $('doneTotal');
   const doneSource = $('doneSource');
+  const lapResultsEl = $('lapResults');
 
   let phases = [];
   let sourceText = '';
@@ -629,6 +693,10 @@
   let countUp = false;
   let loopMode = false;
   let loopCount = 0;
+  let manualMode = false;
+  let overshooting = false;
+  let lapResults = [];
+  let overshootBeeped = false;
 
   // ---- Audio ----
   let audioCtx = null;
@@ -743,7 +811,7 @@
       let lineStyle = 'padding:3px 10px;white-space:pre;transition:opacity 0.2s;';
       if (activeLineIndex !== null && activeLineIndex !== undefined) {
         if (i < activeLineIndex) lineStyle += 'opacity:0.3;';
-        else if (i === activeLineIndex) lineStyle += 'background:rgba(90,138,255,0.12);border-left:3px solid var(--blue);';
+        else if (i === activeLineIndex) lineStyle += 'background:color-mix(in srgb, var(--accent) 14%, transparent);border-left:3px solid var(--accent);';
       }
 
       if (!trimmed) {
@@ -854,6 +922,19 @@
   // ---- Display ----
   let lastBeepedSec = -1;
 
+  function buildTimerSub(phase) {
+    let html = '';
+    if (phase.rep) {
+      html += '<span class="rep-badge">Lap ' + escapeHtml(phase.rep) + '</span>';
+    }
+    if (overshooting) {
+      html += '<span class="over-badge">OVER ' + escapeHtml(phase.displayTime) + '</span>';
+    } else {
+      html += '<span>' + escapeHtml(phase.displayTime) + ' per lap</span>';
+    }
+    return html;
+  }
+
   function updateDisplay() {
     const phase = phases[currentIndex];
     if (!phase) return;
@@ -861,30 +942,32 @@
     // Label
     timerLabel.textContent = phase.label;
 
-    // Sub info: rep badge + phase duration
-    let subHtml = '';
-    if (phase.rep) {
-      subHtml += '<span class="rep-badge">Lap ' + escapeHtml(phase.rep) + '</span>';
-    }
-    subHtml += '<span>' + escapeHtml(phase.displayTime) + ' per lap</span>';
-    timerSub.innerHTML = subHtml;
+    // Sub info: rep badge + phase duration (or OVER badge when exceeding)
+    // Values are escapeHtml'd; no untrusted input.
+    timerSub.innerHTML = buildTimerSub(phase);
 
     // Time display
     const elapsed = phaseDuration - remaining;
-    const displayMs = countUp ? elapsed : remaining;
-    timeLeftEl.textContent = countUp ? formatTimeFloor(displayMs) : formatTime(displayMs);
-
     timeLeftEl.className = 'time';
-    const secLeft = remaining / 1000;
-    if (secLeft <= 3 && secLeft > 0) {
-      timeLeftEl.classList.add('critical');
-      const secCeil = Math.ceil(secLeft);
-      if (secCeil !== lastBeepedSec && secCeil <= 3) {
-        lastBeepedSec = secCeil;
-        beepCountdown();
+
+    if (overshooting) {
+      const overMs = -remaining;
+      timeLeftEl.textContent = '+' + formatTimeFloor(overMs);
+      timeLeftEl.classList.add('over');
+    } else {
+      const displayMs = countUp ? elapsed : remaining;
+      timeLeftEl.textContent = countUp ? formatTimeFloor(displayMs) : formatTime(displayMs);
+      const secLeft = remaining / 1000;
+      if (secLeft <= 3 && secLeft > 0) {
+        timeLeftEl.classList.add('critical');
+        const secCeil = Math.ceil(secLeft);
+        if (secCeil !== lastBeepedSec && secCeil <= 3) {
+          lastBeepedSec = secCeil;
+          beepCountdown();
+        }
+      } else if (secLeft <= 10) {
+        timeLeftEl.classList.add('warning');
       }
-    } else if (secLeft <= 10) {
-      timeLeftEl.classList.add('warning');
     }
 
     // Elapsed total
@@ -895,6 +978,9 @@
     // Progress
     const pct = phaseDuration > 0 ? (elapsed / phaseDuration) * 100 : 0;
     progressFill.style.width = Math.min(100, pct) + '%';
+    progressFill.className = 'fill' + (overshooting ? ' over' : '');
+
+    if (manualMode) nextBtn.classList.toggle('over', overshooting);
 
     // Phase strip
     sourcePanel.innerHTML = renderPhaseStrip(sourceText, phase.lineIndex);
@@ -909,6 +995,8 @@
     remaining = phase.duration;
     phaseDuration = phase.duration;
     lastBeepedSec = -1;
+    overshooting = false;
+    overshootBeeped = false;
     beepSwitch();
     updateDisplay();
   }
@@ -919,12 +1007,32 @@
     lastTick = now;
     remaining -= dt;
     totalElapsed += dt;
-    if (remaining <= 0) {
-      totalElapsed += remaining;
-      startPhase(currentIndex + 1);
-      return;
+    if (remaining <= 0 && !overshooting) {
+      if (manualMode) {
+        overshooting = true;
+        if (!overshootBeeped) { overshootBeeped = true; beepCountdown(); }
+      } else {
+        totalElapsed += remaining; // subtract any overshoot past zero
+        startPhase(currentIndex + 1);
+        return;
+      }
     }
     updateDisplay();
+  }
+
+  function advancePhase() {
+    if (!running || paused) return;
+    const phase = phases[currentIndex];
+    if (!phase) return;
+    const actualMs = phaseDuration - remaining; // can exceed target when overshooting
+    lapResults.push({
+      label: phase.label,
+      rep: phase.rep,
+      target: phaseDuration,
+      actual: actualMs,
+      lineIndex: phase.lineIndex,
+    });
+    startPhase(currentIndex + 1);
   }
 
   // ---- Controls ----
@@ -933,6 +1041,7 @@
     sourceText = inputEl.value;
     countUp = countUpToggle.checked;
     loopMode = $('loopToggle').checked;
+    manualMode = manualToggle.checked;
     loopCount = 1;
     phases = parseTimerInput(sourceText);
     if (phases.length === 0) return;
@@ -943,8 +1052,10 @@
     paused = false;
     totalElapsed = 0;
     currentIndex = -1;
+    lapResults = [];
     pauseBtn.textContent = 'Pause';
     pauseBtn.classList.remove('resumed');
+    nextBtn.style.display = manualMode ? '' : 'none';
 
     startPhase(0);
     lastTick = performance.now();
@@ -975,6 +1086,45 @@
     showScreen(setupScreen);
   }
 
+  function formatDelta(ms) {
+    const sign = ms >= 0 ? '+' : '-';
+    const abs = Math.abs(ms);
+    const sec = Math.floor(abs / 1000);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    const ds = Math.floor((abs % 1000) / 100); // tenths
+    return sign + String(m).padStart(1, '0') + ':' + String(s).padStart(2, '0') + '.' + ds;
+  }
+
+  function renderLapResults() {
+    if (!lapResults.length || !manualMode) return '';
+    let rows = '';
+    let totalDelta = 0;
+    let overCount = 0, underCount = 0, onCount = 0;
+    for (let i = 0; i < lapResults.length; i++) {
+      const lr = lapResults[i];
+      const delta = lr.actual - lr.target;
+      totalDelta += delta;
+      let deltaClass, deltaText;
+      if (Math.abs(delta) < 500) { deltaClass = 'on'; deltaText = '±0.0'; onCount++; }
+      else if (delta > 0) { deltaClass = 'over'; deltaText = formatDelta(delta); overCount++; }
+      else { deltaClass = 'under'; deltaText = formatDelta(delta); underCount++; }
+      const repLabel = lr.rep ? (lr.rep + ' ') : '';
+      rows += '<div class="lap-row">' +
+        '<span class="lap-idx">' + escapeHtml(repLabel || ('#' + (i + 1))) + '</span>' +
+        '<span class="lap-label">' + escapeHtml(lr.label) + '</span>' +
+        '<span class="lap-time">' + formatTimeFloor(lr.actual) + '</span>' +
+        '<span class="lap-delta ' + deltaClass + '">' + escapeHtml(deltaText) + '</span>' +
+        '</div>';
+    }
+    const avgDelta = totalDelta / lapResults.length;
+    const summary = '<div class="lap-summary">' +
+      '<span>' + lapResults.length + ' laps · ' + overCount + ' over · ' + underCount + ' under · ' + onCount + ' on</span>' +
+      '<span>avg <b>' + escapeHtml(formatDelta(avgDelta)) + '</b></span>' +
+      '</div>';
+    return rows + summary;
+  }
+
   function finish() {
     if (loopMode) {
       loopCount++;
@@ -988,12 +1138,15 @@
     doneTotal.textContent = 'Total time: ' + formatTimeFloor(totalElapsed);
     // All lines done — pass line count so all are dimmed
     const lineCount = sourceText.split('\n').length;
+    // escapeHtml is applied to all interpolated values in renderHighlightedInput / renderLapResults
     doneSource.innerHTML = renderHighlightedInput(sourceText, lineCount);
+    lapResultsEl.innerHTML = renderLapResults();
     showScreen(doneScreen);
   }
 
   startBtn.addEventListener('click', start);
   pauseBtn.addEventListener('click', pause);
+  nextBtn.addEventListener('click', advancePhase);
   resetBtn.addEventListener('click', reset);
   againBtn.addEventListener('click', () => showScreen(setupScreen));
 
@@ -1081,12 +1234,20 @@
   });
 
   // Keyboard shortcuts
+  //   Space: start / advance (manual mode) / pause (auto mode)
+  //   Shift+Space: force pause toggle in manual mode
+  //   Escape: reset
   document.addEventListener('keydown', (e) => {
     if (e.target === inputEl) {
       if (e.code === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); start(); }
       return;
     }
-    if (e.code === 'Space') { e.preventDefault(); running ? pause() : start(); }
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (!running) { start(); return; }
+      if (manualMode && !e.shiftKey) advancePhase();
+      else pause();
+    }
     if (e.code === 'Escape') reset();
   });
 
